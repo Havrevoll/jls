@@ -1,17 +1,30 @@
 import subprocess
 import json
+import argparse
 
-root_folder = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument("root_folder")
+parser.add_argument("filepath")
 
-root = json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", "--l", root_folder[0]], capture_output=True, text=True).stdout)
+args = parser.parse_args()
+
+def hentls(path):
+  children =  json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", "--l", path], 
+        capture_output=True, text=True).stdout)
+  if 'Folders' in children:
+    for child in children['Folders']:
+      child['Children'] = hentls(child['Path'])
+  return children
+
+
+
+root_folder = args.root_folder
+
+root = json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", "--l", root_folder], 
+      capture_output=True, text=True).stdout)
 
 for folder in root['Folders']:
   folder['Children'] = hentls(folder['Path'])
 
-def hentls(path):
-  children =  json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", "--l", path], capture_output=True, text=True).stdout)
-  for child in children['Folders']:
-    child['Children'] = hentls(child['Path'])
-  return children
-
-json.dump(root, './folders.json', indent=4, sort_keys=True)
+with open(args.filepath, 'w', encoding='utf-8') as f:
+  json.dump(root, f, indent=4, ensure_ascii=False, sort_keys=True)
