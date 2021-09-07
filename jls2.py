@@ -9,14 +9,11 @@ parser.add_argument("filepath")
 args = parser.parse_args()
 
 def hentls(path, level=0):
-  print("Er på nivå ", level, ", ", path)
-  try:
-    children =  json.loads(subprocess.run(["jotta-cli", "ls", "--json", "--l", path], 
+  children =  json.loads(subprocess.run(["jotta-cli", "ls", "--json", "--l", path], 
         capture_output=True, text=True).stdout)
-  except ValueError:
-    return "Empty"
   if 'Folders' in children:
     for child in children['Folders']:
+      print("Er på nivå ", level, "og no er det ", child['Path'], "sin tur.")
       child['Children'] = hentls(child['Path'], level = level +1)
   return children
 
