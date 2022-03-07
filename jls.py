@@ -9,7 +9,7 @@ parser.add_argument("filepath")
 args = parser.parse_args()
 
 def hentls(path):
-  children =  json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", "--l", path], 
+  children =  json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", path], 
         capture_output=True, text=True).stdout)
   if 'Folders' in children:
     for child in children['Folders']:
@@ -20,7 +20,7 @@ def hentls(path):
 
 root_folder = args.root_folder
 
-root = json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", "--l", root_folder], 
+root = json.loads(subprocess.run(["jotta-cli.exe", "ls", "--json", root_folder], 
       capture_output=True, text=True).stdout)
 
 for folder in root['Folders']:
