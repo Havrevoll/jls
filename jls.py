@@ -14,7 +14,7 @@ parser.add_argument("files_savepath", nargs='?')
 args = parser.parse_args()
 
 if args.root_folder is None:
-  root_folder = "/archive/"
+  root_folder = ""
 else:
   root_folder = args.root_folder
 if args.folder_savepath is None:
@@ -29,7 +29,7 @@ else:
 file_collection = defaultdict(list)
 
 def hentls(path, level=0):
-  print("Er på nivå ", level, ", ", path)
+  # print("Er på nivå ", level, ", ", path)
   try:
     children =  json.loads(subprocess.run(["jotta-cli", "ls", "--json", path], 
         capture_output=True, text=True).stdout)
@@ -48,7 +48,10 @@ def hentls(path, level=0):
 tree = json.loads(subprocess.run(["jotta-cli", "ls", "--json", root_folder], capture_output=True, text=True).stdout)
 
 for folder in tree['Folders']:
-  folder['Children'] = hentls(folder['Path'])
+  if 'Path' in folder and folder['Name'] != 'Trash':
+    folder['Children'] = hentls(folder['Path'])
+  elif folder['Name'] == "Backup":
+    folder['Children'] = hentls('Backup')
 
 with open(folder_savepath, 'w', encoding='utf-8') as f:
   json.dump(tree, f, indent=4, ensure_ascii=False, sort_keys=True)
