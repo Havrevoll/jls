@@ -1,6 +1,7 @@
 from pathlib import Path
 import subprocess
 import time
+import inotify.adapters
 
 def get_children2(path, fi):
     samla = []
@@ -63,17 +64,22 @@ def samanlikna(co,fi):
         print(f"Det var {teljar} filer av {len(fyrste_filer)} i fyrste mappa som ikkje var i andre mappa, der det var {len(andre_filer)} filer.")
         val = input("Vil du flytta dei over (det tek lang tid)? ").lower()
         if val == "ja" or val == "j":
+            i = inotify.adapters.Inotify()
+            i.add_watch(str(Path.cwd()))
             for fil in liste_over_filer_som_fanst_i_fyrste_mappe_men_ikkje_i_andre:
-                subprocess.run(["jotta-cli", "download", fil, "."])
-                for i in range(100):
-                    if Path(fil.name).exists():
-                        subprocess.run(["jotta-cli", "archive", fil.name, f"--remote={Path(andre['Path']).joinpath(fil.name)}", "--nogui"])
-                        break
 
-                    else:
-                        print(f"ventar litt til... for {i}-te gong")
-                        time.sleep(10)
-                hehe = input("her")
+                subprocess.run(["jotta-cli", "download", fil, "."])
+                for event in i.event_gen(yield_nones=False):
+                    (_, type_names, _, filename) = event
+                    if filename == fil.name and type_names == 'IN_CLOSE_WRITE':
+                        break 
+                    # print("PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
+
+                time.sleep(10)
+                if Path(fil.name).exists():
+                    subprocess.run(["jotta-cli", "archive", fil.name, f"--remote={Path(andre['Path']).joinpath(fil.name)}", "--nogui"])
+                    time.sleep(10)
+                    Path(fil.name).unlink()
 
     else: 
         print(f"Det var ingen i fyrste mappa ({fyrste['Path']}) som ikkje var i andre mappa ({andre['Path']}).")
