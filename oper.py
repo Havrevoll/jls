@@ -82,4 +82,4 @@ def samanlikna(co,fi):
                 fil_i_undermappe.unlink()
 
     else: 
-        print(f"Det var ingen av dei {len(fyrste_filer)} filene i fyrste mappa ({fyrste['Path']}) som ikkje var i andre mappa ({andre['Path']}), der det var {len(andre_filer)} filer.")
+        print(f"Alle dei {len(fyrste_filer)} filene i fyrste mappa ({fyrste['Path']}) var å finna i andre mappa ({andre['Path']}), der det var {len(andre_filer)} filer.")
