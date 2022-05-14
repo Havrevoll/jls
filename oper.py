@@ -65,21 +65,21 @@ def samanlikna(co,fi):
         val = input("Vil du flytta dei over (det tek lang tid)? ").lower()
         if val == "ja" or val == "j":
             i = inotify.adapters.Inotify()
-            i.add_watch(str(Path.cwd()))
+            i.add_watch(str(Path.cwd().joinpath('taa')))
             for fil in liste_over_filer_som_fanst_i_fyrste_mappe_men_ikkje_i_andre:
-
-                subprocess.run(["jotta-cli", "download", fil, "."])
-                for event in i.event_gen(yield_nones=False):
-                    (_, type_names, _, filename) = event
-                    if filename == fil.name and type_names == 'IN_CLOSE_WRITE':
-                        break 
+                fil_i_undermappe = Path('./taa').joinpath(fil.name)
+                if not fil_i_undermappe.exists():
+                    subprocess.run(["jotta-cli", "download", fil, "./taa"])
+                    for event in i.event_gen(yield_nones=False):
+                        (_, type_names,_, filename) = event
+                        # print(fil.name, type_names, filename, 'IN_CLOSE_WRITE' in type_names) 
+                        if 'IN_CLOSE_WRITE' in type_names and filename == str(fil.name):
+                            print("kom her")
+                            break
                     # print("PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
 
-                time.sleep(10)
-                if Path(fil.name).exists():
-                    subprocess.run(["jotta-cli", "archive", fil.name, f"--remote={Path(andre['Path']).joinpath(fil.name)}", "--nogui"])
-                    time.sleep(10)
-                    Path(fil.name).unlink()
+                subprocess.run(["jotta-cli", "archive", fil_i_undermappe, f"--remote={Path(andre['Path']).joinpath(fil.name)}", "--nogui"])
+                fil_i_undermappe.unlink()
 
     else: 
-        print(f"Det var ingen i fyrste mappa ({fyrste['Path']}) som ikkje var i andre mappa ({andre['Path']}).")
+        print(f"Det var ingen av dei {len(fyrste_filer)} filene i fyrste mappa ({fyrste['Path']}) som ikkje var i andre mappa ({andre['Path']}), der det var {len(andre_filer)} filer.")

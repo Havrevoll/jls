@@ -36,3 +36,5 @@ inc/
 /*.zip
 
 *.json
+__pycache__/*
+*.swp
