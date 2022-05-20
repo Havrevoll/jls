@@ -27,7 +27,7 @@ def show(co):
         print(f"Ingen mapper under {co['Path']}, returnerer")
         return co
     print(f"No er me i {co['Path']}")
-    [print(i,a['Path']) for i,a in enumerate(co['Folders'])]
+    [print(f"{i}  {a['Path']}  {a['Size']/1024/1024:.2f} MiB") for i,a in enumerate(co['Folders'])]
     no = int(input("Kva mappenummer? "))
     if no <0:
         return co
@@ -83,3 +83,13 @@ def samanlikna(co,fi):
 
     else: 
         print(f"Alle dei {len(fyrste_filer)} filene i fyrste mappa ({fyrste['Path']}) var å finna i andre mappa ({andre['Path']}), der det var {len(andre_filer)} filer.")
+
+def samanlikna_alle(fo,fi):
+    # Skal gå gjennom ALLE mappene og sjå om det finst nokon duplikatar, båe vegar! Det må vel ta enormt med tid, men kven veit.
+    folder_liste = []
+    if 'Folders' in fo:
+        for folder in fo['Folders']:
+            if 'Folders' in folder:
+                fyrste = get_children(folder)
+
+    

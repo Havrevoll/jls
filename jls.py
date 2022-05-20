@@ -3,6 +3,7 @@ import json
 import argparse
 from collections import defaultdict
 from pathlib import Path
+import datetime
 
 #from requests import JSONDecodeError
 
@@ -30,7 +31,8 @@ else:
 file_collection = defaultdict(list)
 
 def hentls(path, level=0):
-  # print("Er på nivå ", level, ", ", path)
+  if level < 5:
+    print("Er på nivå ", level, ", ", path)
   try:
     children =  json.loads(subprocess.run(["jotta-cli", "ls", "--json", path], 
         capture_output=True, text=True).stdout)
@@ -63,6 +65,7 @@ def hentls(path, level=0):
       file_collection[file['Checksum']].append(file)
   return children
 
+start = datetime.datetime.now()
 
 # tree = json.loads(subprocess.run(["jotta-cli", "ls", "--json", root_folder], capture_output=True, text=True).stdout)
 tree = hentls(root_folder)
@@ -96,3 +99,4 @@ with open(files_savepath, 'w', encoding='utf-8') as f:
 # your_dt = datetime.datetime.fromtimestamp(int(timestamp)/1000)                                                                                                                                                     
 
 # print(your_dt.strftime("%Y-%m-%d %H:%M:%S"))
+print(f"Ferdig, brukte {datetime.datetime.now()-start} på jobben")

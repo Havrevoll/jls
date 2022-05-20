@@ -22,5 +22,6 @@ Lagar to databasar/dicts:
 I grunnen er dette berre ein kopi av JSON-fila som kjem frå kvart søk på ei mappe. Ganske enkelt.
 
 Deretter må det vera eit slags menysystem for å henta informasjon:
-- Samla storleik på ei mappe og undermapper.
 - Finn alle mapper som har heilt like innhald.
+- Finn ut om innhaldet i ei mappe finst andre stader, og list opp andre mapper som har komplett eller delvis komplett kopi, rangert.
+- 
