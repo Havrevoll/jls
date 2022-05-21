@@ -33,17 +33,20 @@ file_collection = defaultdict(list)
 def hentls(path, level=0):
   if level < 7:
     print("Er på nivå ", level, ", ", path)
+  alle_filer = defaultdict(list)
   try:
     children =  json.loads(subprocess.run(["jotta-cli", "ls", "--json", path], 
         capture_output=True, text=True).stdout)
   except ValueError:
-    return "Empty"
+    return {},{} 
   if 'Folders' in children:
     for child in children['Folders']:
       size = 0
       try:
         # if child['Name'] != 'Trash':
-          content = hentls(child['Path'], level = level +1)
+          content, nye_filer = hentls(child['Path'], level = level +1)
+          for key in nye_filer:
+            alle_filer[key].extend(nye_filer[key])
         # else:
         #   content = {}
       except KeyError:
@@ -65,8 +68,8 @@ def hentls(path, level=0):
     for file in children['Files']:
       if 'Size' not in file:
         file['Size'] = 0
-      file_collection[file['Checksum']].append(file)
-  return children
+      alle_filer[file['Checksum']].append(file)
+  return children,alle_filer
 import ray
 ray.init()
 
@@ -74,17 +77,21 @@ ray.init()
 def hentls_remote(path, level=0):
   if level < 7:
     print("Er på nivå ", level, ", ", path)
+
+  alle_filer = defaultdict(list)
   try:
     children =  json.loads(subprocess.run(["jotta-cli", "ls", "--json", path], 
         capture_output=True, text=True).stdout)
   except ValueError:
-    return "Empty"
+    return {},{}
   if 'Folders' in children:
     for child in children['Folders']:
       size = 0
       try:
         # if child['Name'] != 'Trash':
-          content = hentls(child['Path'], level = level +1)
+          content, nye_filer = hentls(child['Path'], level = level +1)
+          for key in nye_filer:
+            alle_filer[key].extend(nye_filer[key])
         # else:
         #   content = {}
       except KeyError:
@@ -106,8 +113,8 @@ def hentls_remote(path, level=0):
     for file in children['Files']:
       if 'Size' not in file:
         file['Size'] = 0
-      file_collection[file['Checksum']].append(file)
-  return children
+      alle_filer[file['Checksum']].append(file)
+  return children,alle_filer
 
 start = datetime.datetime.now()
 
@@ -119,13 +126,15 @@ for a in tree['Folders']:
 
 archive_job = hentls_remote.remote('/archive/')
 backup_job = hentls_remote.remote('/backup/')
-sync_job = hentls_remote.remote('/sync/')
 photo_job = hentls_remote.remote('/photos/')
+sync_job = hentls_remote.remote('/sync/')
 jobbane = {archive_job:0,backup_job:1, photo_job:2, sync_job:3 }
-unready = [archive_job,backup_job,sync_job,photo_job]
+unready = [archive_job,backup_job,photo_job,sync_job]
 while True:
   ready, unready = ray.wait(unready)
-  ferdig = ray.get(ready[0])
+  ferdig,nye_filer = ray.get(ready[0])
+  for key in nye_filer:
+    file_collection[key].extend(nye_filer[key])
   size = 0
   if 'Files' in ferdig:
     for file in ferdig['Files']:
